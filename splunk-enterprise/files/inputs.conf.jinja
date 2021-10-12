@@ -1,0 +1,20 @@
+{%- from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+[default]
+host = {{ grains['fqdn'] }}
+
+# TCP input setup
+[splunktcp-ssl:9997]
+disabled = 0
+
+[SSL]
+{% if config.splunk.ssl.use_internal_ca == 'True' -%}
+# Using a custom certificate
+serverCert = {{ config.splunk.ssl.server_cert_path | regex_replace('(XXXCERTXXX)', grains['host'] + '-cert-bundle.pem') }}
+sslPassword = {{ config.splunk.ssl.password }}
+{% else %}
+# Using the default certificate
+serverCert = $SPLUNK_HOME/etc/auth/ca.pem
+sslPassword = password
+{% endif -%}
+# There is no need to validate the default server certificate
+requireClientCert = false

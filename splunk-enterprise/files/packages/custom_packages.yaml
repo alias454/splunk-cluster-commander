@@ -1,0 +1,98 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+---
+
+# List of packages that will be deployed
+#splunk_packages:
+#  - name: Example Package
+#    status: 'enable' # Options are enable, disable, remove
+#    description: 'link to app'
+#    package:
+#      version: '1.0.0'
+#      deployment_folder: 'folder package will be extracted to'
+#      deployment_tar: 'optional name of downloaded tgz'
+#    search_head: 'deploy to search heads? yes|no'
+#    indexer: 'deploy to indexers? yes|no'
+#    heavy_forwarder: 'deploy to HF nodes? yes|no'
+#    universal_forwarder: 'deploy to UF nodes? yes|no'
+
+splunk_packages:
+  - name: All Indexes list
+    status: 'disable' # Options are enable, disable, remove
+    description: 'Custom list of indexes'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_all_indexes'
+    search_head: 'no' # Disable to use standard deployment option instead of deployer
+    indexer: 'yes'
+    heavy_forwarder: 'yes'
+    universal_forwarder: 'yes'
+  - name: Cluster Indexer Base
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Set repFactor and tsidx write levels'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_cluster_indexer_base'
+    search_head: 'no'
+    indexer: 'yes'
+    heavy_forwarder: 'no'
+    universal_forwarder: 'no'
+  - name: Indexer Volume Indexes
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Set primary and secondary volume sizes and paths on indexers'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_indexer_volume_indexes'
+    search_head: 'no'
+    indexer: 'yes'
+    heavy_forwarder: 'no'
+    universal_forwarder: 'no'
+  - name: Search Head Volume Indexes
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Set primary and secondary volume sizes and paths on search heads'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_search_head_volume_indexes'
+    search_head: 'no' # Disable to use standard deployment option instead of deployer
+    indexer: 'yes'
+    heavy_forwarder: 'no'
+    universal_forwarder: 'no'
+  - name: Heavy Forwarder Volume Indexes
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Set primary and secondary volume sizes and paths on heavy forwarders'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_heavy_forwarder_volume_indexes'
+    search_head: 'no'
+    indexer: 'no'
+    heavy_forwarder: 'yes'
+    universal_forwarder: 'no'
+  - name: Site1 Base
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Sets the site value for clustering'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_site_1_base'
+    search_head: 'no'
+    indexer: 'yes'
+    heavy_forwarder: 'yes'
+    universal_forwarder: 'yes'
+  - name: Site2 Base
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Sets the site value for clustering'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_site_2_base'
+    search_head: 'no'
+    indexer: 'yes'
+    heavy_forwarder: 'yes'
+  - name: KV Store WiredTiger
+    status: 'enable' # Options are enable, disable, remove
+    description: 'Sets the value for the kvstore engine to wiredtiger'
+    package:
+      version: '1.0.0'
+      deployment_folder: 'org_kvstore_engine_wiredtiger'
+    search_head: 'yes'
+    indexer: 'no'
+    heavy_forwarder: 'no'
+    universal_forwarder: 'no'

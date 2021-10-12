@@ -1,0 +1,18 @@
+{% from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+[settings]
+{% if config.splunk.web.use_web_server == 'True' -%}
+# Webserver is enabled
+enableSplunkWebSSL = true
+httpport = {{ config.splunk.web.httpport }}
+
+{% if config.splunk.ssl.use_internal_ca == 'True' -%}
+privKeyPath = {{ config.splunk.web.ssl.webserver_key_path | regex_replace('(XXXCERTXXX)', grains['host'] + '-splunkweb-priv-key.pem') }}
+serverCert = {{ config.splunk.web.ssl.webserver_cert_path | regex_replace('(XXXCERTXXX)', grains['host'] + '-splunkweb-cert-bundle.pem') }}
+{% else -%}
+privKeyPath = etc/auth/splunkweb/privkey.pem
+serverCert = etc/auth/splunkweb/cert.pem
+{%- endif %}
+{% else -%}
+# Webserver is disabled
+startwebserver = 0
+{%- endif %}

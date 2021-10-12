@@ -1,0 +1,14 @@
+{% from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+[email]
+{% if config.splunk.server_role in [ 'search-head' ] -%}
+hostname = {{ config.splunk.splunk_sh_uri }}
+{% endif -%}
+mailserver = {{ config.splunk.alerts.mailserver | default('mail.server.tld') }}:{{ config.splunk.alerts.mailserver_port | default('25') }}
+from = {{ config.splunk.alerts.mailfrom | default('splunk@server.tld') }}
+pdf.header_left = {{ config.splunk.alerts.pdf_header_left | default('none') }}
+pdf.header_right = {{ config.splunk.alerts.pdf_header_right | default('none') }}
+auth_password = {{ config.splunk.alerts.auth_password | default('') }}
+auth_username = {{ config.splunk.alerts.auth_username | default('') }}
+use_tls = {{ config.splunk.alerts.use_tls | default('0') }}
+use_ssl = {{ config.splunk.alerts.use_ssl | default('0') }}
+maxresults = {{ config.splunk.alerts.maxresults | default('100') }}

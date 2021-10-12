@@ -1,0 +1,30 @@
+{%- from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+[indexAndForward]
+# Turn off local indexing for cluster members
+index = false
+
+[tcpout]
+defaultGroup = primary_indexers
+forwardedindex.filter.disable = true
+indexAndForward = false
+
+[tcpout:primary_indexers]
+indexerDiscovery = clustered_indexers
+forceTimebasedAutoLB = true
+autoLBFrequency = 30
+useACK = true
+maxQueueSize = 7MB
+
+{% if config.splunk.ssl.use_internal_ca == 'True' -%}
+clientCert = {{ config.splunk.ssl.client_cert_path | regex_replace('(XXXCERTXXX)', grains['host'] + '-cert-bundle.pem') }}
+sslPassword = {{ config.splunk.ssl.password }}
+{% else %}
+clientCert = $SPLUNK_HOME/etc/auth/server.pem
+sslPassword = password 
+{% endif -%}
+sslVerifyServerCert = false
+
+[indexer_discovery:clustered_indexers]
+pass4SymmKey = {{ config.splunk.cluster.pass4SymmKey }}
+#pass4SymmKeyCheck = {{ config.splunk.cluster.pass4SymmKey | sha256 }}
+master_uri = https://{{ config.splunk.splunk_cm_uri }}:{{ config.splunk.splunk_mgmt_port }}

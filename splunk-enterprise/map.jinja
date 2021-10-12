@@ -1,0 +1,233 @@
+# To accommodate different naming schemes like
+# splunk-idx, splunk-indexer, or indexer-usw2
+# set the host match string for each splunk role
+# this string should match part of the hostname
+{% set search_head = salt['pillar.get']('splunk-enterprise:lookup:splunk:search_head', 'search') %}
+{% set cluster_master = salt['pillar.get']('splunk-enterprise:lookup:splunk:cluster_master', 'cluster-master') %}
+{% set license_master = salt['pillar.get']('splunk-enterprise:lookup:splunk:license_master', 'license-master') %}
+{% set deployment_server = salt['pillar.get']('splunk-enterprise:lookup:splunk:deployment_server', 'deployment-server') %}
+{% set heavy_forwarder = salt['pillar.get']('splunk-enterprise:lookup:splunk:heavy_forwarder', 'heavy-forwarder') %}
+{% set indexer = salt['pillar.get']('splunk-enterprise:lookup:splunk:indexer', 'indexer') %}
+{% set worker = salt['pillar.get']('splunk-enterprise:lookup:splunk:worker', 'splunkhf') %}
+
+# Set webserver status and server role based on matched value
+{% if search_head in grains['host'] | string %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'search-head' %}
+
+{% elif cluster_master in grains['host'] | string %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'cluster-master' %}
+
+{% elif license_master in grains['host'] | string %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'license-master' %}
+
+{% elif deployment_server in grains['host'] | string %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'deployment-server' %}
+
+{% elif heavy_forwarder in grains['host'] | string %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'heavy-forwarder' %}
+
+{% elif indexer in grains['host'] | string %}
+  {% set use_webserver = 'False' %}
+  {% set server_role = 'indexer' %}
+
+{% elif worker in grains['host'] | string %}
+  {% set use_webserver = 'False' %}
+  {% set server_role = 'worker' %}
+
+{% else %}
+  {% set use_webserver = 'True' %}
+  {% set server_role = 'standalone' %}
+{% endif %}
+
+# Set default splunk settings
+{% set default_config = salt.grains.filter_by({
+  'default':
+  {
+    'splunk':
+    {
+      'restart_service_after_state_change': 'True',
+      'license_file': 'Splunk.License.lic',
+      'server_role': server_role,
+      'base_dir': '/opt/splunk',
+      'admin_user': 'admin',
+      'current_admin_pass': 'changeme',
+      'old_admin_pass': 'changeme',
+      'splunk_mgmt_port': '8089',
+      'splunk_cm_uri': 'cluster-master.domain.tld',
+      'splunk_lm_uri': 'license-master.domain.tld',
+      'splunk_ds_uri': 'deployment-server.domain.tld',
+      'splunk_sh_uri': 'search-load-balancer.domain.tld',
+      'parallelIngestionPipelines': '1',
+      'httpserver_max_content_length': '2147483648',
+      'distsearch_maxBundleSize': '2048',
+      'kvstore_storageEngine': 'wiredTiger',
+      'pass4SymmKey': 'changeme',
+      'cluster':
+      {
+        'replication_port': '9887',
+        'pass4SymmKey': 'someRandomValue',
+        'label': 'US_cluster',
+        'default_site': 'site1',
+        'search_site': 'site0',
+        'replication_factor': '2',
+        'multisite': 'true',
+        'available_sites': 'site1,site2',
+        'site_replication_factor': 'origin:2,total:2',
+        'site_search_factor': 'origin:2,total:2',
+        'restart_timeout': '120'
+      },
+      'shcluster':
+      {
+        'use_shcluster': 'True',
+        'use_deployer': 'True',
+        'replication_port': '8087',
+        'pass4SymmKey': 'someOtherRandomValue',
+        'label': 'US_shcluster',
+        'replication_factor': '3'
+      },
+      'ssl':
+      {
+        'password': 'password',
+        'use_internal_ca': 'False',
+        'root_ca_path': '/opt/splunk/etc/auth/certs/ca-cert.pem',
+        'client_cert_path': '$SPLUNK_HOME/etc/auth/certs/XXXCERTXXX',
+        'server_cert_path': '$SPLUNK_HOME/etc/auth/certs/XXXCERTXXX'
+      },
+      'web':
+      {
+        'use_web_server' : use_webserver,
+        'httpport' : '8443',
+        'ssl':
+        {
+          'webserver_key_path': 'etc/auth/certs/XXXCERTXXX',
+          'webserver_cert_path': 'etc/auth/certs/XXXCERTXXX'
+        }
+      },
+      'alerts':
+      {
+        'mailserver': 'mail.domain.tld',
+        'mailserver_port': '465',
+        'mailfrom': 'splunk@domain.tld',
+        'pdf_header_left': 'none',
+        'pdf_header_right': 'none',
+        'auth_password': '',
+        'auth_username': '',
+        'use_tls': '1',
+        'use_ssl': '0',
+        'maxresults': '100'
+      },
+      'storage':
+      {
+        'volume_indexing':
+        {
+          'indexer':
+          {
+            'primary_volume_path': '/opt/splunk/var/lib/splunk',
+            'primary_maxVolumeDataSizeMB': '5120',
+            'secondary_volume_path': '/opt/splunk/var/lib/splunk',
+            'secondary_maxVolumeDataSizeMB': '10240',
+            'summaries_volume_path': '/opt/splunk/var/lib/splunk',
+            'summaries_maxVolumeDataSizeMB': '1024'
+          },
+          'search_head':
+          {
+            'primary_volume_path': '/opt/splunk/var/lib/splunk',
+            'primary_maxVolumeDataSizeMB': '2048',
+            'secondary_volume_path': '/opt/splunk/var/lib/splunk',
+            'secondary_maxVolumeDataSizeMB': '2048'
+          },
+          'heavy_forwarder':
+          {
+            'primary_volume_path': '/opt/splunk/var/lib/splunk',
+            'primary_maxVolumeDataSizeMB': '2048',
+            'secondary_volume_path': '/opt/splunk/var/lib/splunk',
+            'secondary_maxVolumeDataSizeMB': '2048'
+          }
+        }
+      }
+    }
+  }
+}, grain='host', base='default') %}
+
+# Set kernel parameters to tune this instance
+{% set kernel = {
+  'kernel':
+  {
+    'vm_swappiness': '10',
+    'vm_max_map_count': '262144'
+  }
+} %}
+
+# Configure firewall from pillar
+{% set os_lookup = {
+  'RedHat':
+  {
+    'firewall':
+    {
+      'firewall_include': 'splunk-firewalld',
+      'firewalld':
+      {
+        'status': salt['pillar.get']('firewall:firewalld:status', 'InActive')
+      }
+    }
+  },
+  'Debian':
+  {
+    'firewall':
+    {
+      'firewall_include': 'splunk-iptables',
+      'iptables':
+      {
+        'status': salt['pillar.get']('firewall:iptables:status', 'InActive')
+      }
+    }
+  }
+} %}
+{% set firewall = os_lookup.get(grains.os_family, {}) %} 
+
+# Package settings for os_family
+# base_url https://download.splunk.com/products/splunk/releases/version/platform/package_file
+{% set os_lookup = {
+  'RedHat':
+  {
+    'package':
+    {
+      'python_pip_cmd': '/usr/bin/pip-3',
+      'install_type': 'local',
+      'skip_verify': 'true',
+      'package_name': 'splunk',
+      'file_name': 'splunk-8.2.1-ddff1c41e5cf-linux-2.6-x86_64.rpm',
+      'version': '8.2.1',
+      'platform': 'linux',
+      'base_url': 'https://download.splunk.com/products/splunk/releases'
+    }
+  },
+  'Debian':
+  {
+    'package':
+    {
+      'python_pip_cmd': '/usr/bin/pip3',
+      'install_type': 'download',
+      'skip_verify': 'true',
+      'package_name': 'splunk',
+      'file_name': 'splunk-8.2.1-ddff1c41e5cf-linux-2.6-amd64.deb',
+      'version': '8.2.1',
+      'platform': 'linux',
+      'base_url': 'https://download.splunk.com/products/splunk/releases'
+    }
+  }
+} %}
+{% set os_map = os_lookup.get(grains.os_family, {}) %} 
+
+# Update the default config with kernel and firewall config
+{% do default_config.update(kernel) %}
+{% do default_config.update(firewall) %}
+{% do default_config.update(os_map) %}
+
+# Merge the default settings with pillar data
+{% set host_lookup = salt['pillar.get']('splunk-enterprise:lookup', default=default_config, merge=True) %}

@@ -1,0 +1,82 @@
+{%- from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+#####
+##### Apps sent to the Cluster Master for distribution to the Indexers #####
+#####
+
+[serverClass:clusterMaster]
+whitelist.0 = {{ config.splunk.splunk_cm_uri }}
+
+[serverClass:clusterMaster:app:org_all_indexes]
+stateOnClient = noop
+
+[serverClass:clusterMaster:app:org_indexer_volume_indexes]
+stateOnClient = noop
+
+[serverClass:clusterMaster:app:org_cluster_indexer_base]
+stateOnClient = noop
+
+#####
+##### All Deployment Client Forwarders #####
+#####
+
+[serverClass:deploymentClientForwarders]
+whitelist.0 = *
+blacklist.0 = {{ config.splunk.splunk_cm_uri }}
+blacklist.1 = {{ config.splunk.splunk_lm_uri }}
+blacklist.2 = {{ config.splunk.splunk_ds_uri }}
+blacklist.3 = splunk-search*
+blacklist.4 = splunk-indexer*
+blacklist.5 = splunk-heavy*
+blacklist.6 = splunkhf*
+
+[serverClass:deploymentClientForwarders:app:org_universal_forwarder_outputs]
+restartSplunkd = true
+stateOnClient = enabled
+
+#####
+##### All Heavy Forwarders #####
+#####
+
+[serverClass:allHeavyForwarders]
+whitelist.0 = splunkhf*
+whitelist.1 = splunk-heavy-forwarder*
+blacklist.0 = {{ config.splunk.splunk_cm_uri }}
+blacklist.1 = {{ config.splunk.splunk_lm_uri }}
+blacklist.2 = {{ config.splunk.splunk_ds_uri }}
+blacklist.3 = splunk-search*
+blacklist.4 = splunk-indexer*
+
+[serverClass:allHeavyForwarders:app:org_heavy_forwarder_volume_indexes]
+restartSplunkd = true
+stateOnClient = enabled
+
+[serverClass:allHeavyForwarders:app:org_all_indexes]
+restartSplunkd = true
+stateOnClient = enabled
+
+#####
+##### All Search Heads #####
+#####
+
+[serverClass:allSearch]
+whitelist.0 = splunk-search*
+
+[serverClass:allSearch:app:org_search_head_volume_indexes]
+restartSplunkd = false
+stateOnClient = enabled
+
+[serverClass:allSearch:app:org_all_indexes]
+restartSplunkd = false
+stateOnClient = enabled
+
+#####
+##### All Linux systems #####
+#####
+
+[serverClass:allLinux]
+whitelist.0 = *
+blacklist.0 = {{ config.splunk.splunk_cm_uri }}
+blacklist.1 = splunk-indexer*
+blacklist.2 = splunk-search*
+machineTypesFilter = linux-i686, linux-x86_64
+

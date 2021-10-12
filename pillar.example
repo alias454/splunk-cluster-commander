@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+---
+# Set firewall status to Active or InActive for the firewall service.
+# If you want to disable the firewall, set this to 'InActive'
+firewall:
+  firewalld:
+    status: 'InActive'
+    default_zone: 'internal'
+
+splunk-enterprise:
+  lookup:
+    # Package settings for os_family
+    # base_url https://download.splunk.com/products/splunk/releases/version/platform/package_file
+    package:
+      package_name: 'splunk'
+      version: '8.2.1'
+      base_url: 'https://download.splunk.com/products/splunk/releases'
+    {% if grains['os_family'] == 'RedHat' %}
+      python_pip_cmd: '/usr/bin/pip-3'
+      install_type: 'local'       # Install type can be local or download
+      file_name: 'splunk-8.2.1-ddff1c41e5cf-linux-2.6-x86_64.rpm'
+      platform: 'linux'
+    {% elif grains['os_family'] == 'Debian' %}
+      python_pip_cmd: '/usr/bin/pip3'
+      install_type: 'download'    # Install type can be local or download
+      file_name: 'splunk-8.2.1-ddff1c41e5cf-linux-2.6-amd64.deb'
+      platform: 'linux'
+    {% endif %}
+    # To accomedate different naming schemes such as splunk-idx, splunk-indexer, or indexer-usw2
+    # set the host match string for the splunk role. The string should match part of the hostname
+    splunk:
+      search_head: 'search'              # Comment goes here
+      cluster_master: 'cluster-master'
+      license_master: 'license-master'
+      deployment_server: 'deployment-server'
+      heavy_forwarder: 'heavy-forwarder'
+      indexer: 'indexer'
+      worker: 'splunkhf'
+      restart_service_after_state_change: 'True'
+      license_file: 'Splunk.License.lic'
+      base_dir: '/opt/splunk'
+      admin_user: 'admin'
+      current_admin_pass: 'ChangeMe'
+      old_admin_pass: 'changeme'
+      splunk_mgmt_port: '8089'
+      splunk_cm_uri: 'splunk-cluster-master01.alias454.local'
+      splunk_lm_uri: 'splunk-license-master01.alias454.local'
+      splunk_ds_uri: 'splunk-deployment-server01.alias454.local'
+      splunk_sh_uri: 'splunk-load-balancer.alias454.local'
+      parallelIngestionPipelines: '2'
+      httpserver_max_content_length: '2147483648'
+      distsearch_maxBundleSize: '2048'
+      kvstore_storageEngine: 'wiredTiger'
+      pass4SymmKey: 'changeme'
+      cluster:
+        replication_port: '9887'
+        pass4SymmKey: 'someRandomValue'
+        label: 'US_cluster'
+        replication_factor: '2'
+        multisite: 'true'
+        available_sites: 'site1,site2'
+        site_replication_factor: 'origin:2,total:2'
+        site_search_factor: 'origin:2,total:2'
+        restart_timeout: '120'
+      shcluster:
+        use_shcluster: 'True'
+        use_deployer: 'True'
+        replication_port: '8087'
+        splunk_sh_captain: 'splunk-search-head01.alias454.local'
+        pass4SymmKey: 'someOtherRandomValue'
+        label: 'US_shcluster'
+        replication_factor: '3'
+      ssl:
+        password: 'password'
+        use_internal_ca: 'False'
+        root_ca_path: '/opt/splunk/etc/auth/certs/ca-cert.pem'
+        client_cert_path: '$SPLUNK_HOME/etc/auth/certs/XXXCERTXXX'
+        server_cert_path: '$SPLUNK_HOME/etc/auth/certs/XXXCERTXXX'
+      web:
+        httpport: '8443'
+        ssl:
+          webserver_key_path: 'etc/auth/certs/XXXCERTXXX'
+          webserver_cert_path: 'etc/auth/certs/XXXCERTXXX'
+      alerts:
+        mailserver: 'mail.alias454.local'
+        mailserver_port: '465'
+        mailfrom: 'splunk@alias454.local'
+        pdf_header_left: 'none'
+        pdf_header_right: 'none'
+        auth_password: ''
+        auth_username: ''
+        use_tls: '1'
+        use_ssl: '0'
+        maxresults: '100'
+      storage:
+        volume_indexing:
+          indexer:
+            primary_volume_path: '/opt/splunk/var/lib/splunk'
+            primary_maxVolumeDataSizeMB: '5120'
+            secondary_volume_path: '/opt/splunk/var/lib/splunk'
+            secondary_maxVolumeDataSizeMB: '10240'
+            summaries_volume_path: '/opt/splunk/var/lib/splunk'
+            summaries_maxVolumeDataSizeMB: '1024'
+          search_head:
+            primary_volume_path: '/opt/splunk/var/lib/splunk'
+            primary_maxVolumeDataSizeMB: '2048'
+            secondary_volume_path: '/opt/splunk/var/lib/splunk'
+            secondary_maxVolumeDataSizeMB: '2048'
+          heavy_forwarder:
+            primary_volume_path: '/opt/splunk/var/lib/splunk'
+            primary_maxVolumeDataSizeMB: '2048'
+            secondary_volume_path: '/opt/splunk/var/lib/splunk'
+            secondary_maxVolumeDataSizeMB: '2048'
+

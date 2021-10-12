@@ -1,0 +1,13 @@
+{%- from "splunk-enterprise/map.jinja" import host_lookup as config with context -%}
+{% if config.splunk.server_role in [ 'cluster-master' ] -%}
+[deployment-client]
+serverRepositoryLocationPolicy = rejectAlways
+repositoryLocation = $SPLUNK_HOME/etc/master-apps
+{%- else -%}
+[deployment-client]
+# Set phoneHomeInterval to 10 minutes
+# phoneHomeIntervalInSecs = 600
+{%- endif %}
+
+[target-broker:deploymentServer]
+targetUri = https://{{ config.splunk.splunk_ds_uri }}:{{ config.splunk.splunk_mgmt_port }}
